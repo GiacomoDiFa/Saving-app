@@ -1,269 +1,211 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/model/transaction.dart';
+import 'package:frontend/provider/auth_riverpod.dart';
+import 'package:frontend/provider/label_riverpod.dart';
+import 'package:frontend/provider/provider.dart';
+import 'package:frontend/provider/transaction_riverpod.dart';
 import 'package:frontend/services/api_service.dart';
-import 'add_transaction_screen.dart'; // Import the new screen
+import 'add_transaction_screen.dart';
 import 'package:intl/intl.dart';
 
-class TransactionScreen extends StatefulWidget {
+class TransactionScreen extends ConsumerWidget {
   @override
-  _TransactionScreenState createState() => _TransactionScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isAuthenticated = ref.read(authProvider.notifier).state;
 
-class _TransactionScreenState extends State<TransactionScreen> {
-  List<Transaction> transactions = [];
-  List<Label> labels = [];
-  Label? selectedLabel;
-  int? selectedMonth;
-  int? selectedYear;
-  final ApiService _apiService = ApiService();
-  bool isLoading = true;
+    // Se non autenticato, esegui fetch di labels e transactions
+    if (!isAuthenticated) {
+      ref.read(labelProvider.notifier).fetchLabels();
+      ref.read(transactionProvider.notifier).fetchTransactions();
+    }
+    final transactions = ref.watch(transactionProvider);
+    final labels = ref.watch(labelProvider);
+    final selectedLabel = ref.watch(selectedLabelProvider);
+    final isLoading = ref.watch(isLoadingProvider);
 
-  @override
-  void initState() {
-    super.initState();
-    DateTime now = DateTime.now();
-    selectedMonth = now.month;
-    selectedYear = now.year;
-    fetchTransactionsAndLabels();
-  }
-
-  void showStatusDialog(BuildContext context, String message, bool isSuccess) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Row(
-            children: [
-              Icon(
-                isSuccess ? Icons.check_circle : Icons.error,
-                color: isSuccess ? Colors.green : Colors.red,
-              ),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(message),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> fetchTransactionsAndLabels() async {
-    try {
-      setState(() {
-        isLoading = true;
+    void _filterTransactions() {
+      ref.read(isLoadingProvider.notifier).state = true;
+      ref
+          .read(transactionProvider.notifier)
+          .filterTransactions(
+            ref.read(selectedLabelProvider)?.id,
+            ref.read(selectedMonthProvider),
+            ref.read(selectedYearProvider),
+          )
+          .then((_) {
+        ref.read(isLoadingProvider.notifier).state = false;
       });
+    }
 
-      List<Transaction> fetchedTransactions =
-          await _apiService.getTransactions();
-      List<Label> fetchedLabels = await _apiService.getLabels();
-
-      setState(() {
-        transactions = fetchedTransactions;
-        labels = fetchedLabels;
-        isLoading = false;
-      });
-
-      if (selectedLabel != null && !labels.contains(selectedLabel)) {
-        setState(() {
-          selectedLabel = null;
-        });
+    double getTotalExpenses() {
+      double total = 0.0;
+      for (var transaction in transactions) {
+        if (transaction.transactionType == 'expense') {
+          total += transaction.amount;
+        }
       }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      showStatusDialog(context, 'Failed to load transactions', false);
+      return total;
     }
-  }
 
-  Future<void> filterTransactions() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-      List<Transaction> filteredTransactions =
-          await _apiService.filterTransactions(
-        selectedLabel?.id,
-        selectedMonth,
-        selectedYear,
-      );
-
-      setState(() {
-        transactions = filteredTransactions;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      showStatusDialog(context, 'Failed to filter transactions', false);
-    }
-  }
-
-  double getTotalExpenses() {
-    double total = 0.0;
-    for (var transaction in transactions) {
-      if (transaction.transactionType == 'expense') {
-        total += transaction.amount;
+    double getTotalIncome() {
+      double total = 0.0;
+      for (var transaction in transactions) {
+        if (transaction.transactionType == 'income') {
+          total += transaction.amount;
+        }
       }
+      return total;
     }
-    return total;
-  }
 
-  double getTotalIncome() {
-    double total = 0.0;
-    for (var transaction in transactions) {
-      if (transaction.transactionType == 'income') {
-        total += transaction.amount;
-      }
-    }
-    return total;
-  }
+    Future<void> _selectMonthYear(BuildContext context) async {
+      showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (BuildContext context) {
+          int tempYear = ref.read(selectedYearProvider);
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setModalState) {
+              void _incrementYear() {
+                setModalState(() {
+                  tempYear += 1;
+                });
+              }
 
-  Future<void> _selectMonthYear(BuildContext context) async {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        int tempYear = selectedYear!;
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            void _incrementYear() {
-              setModalState(() {
-                tempYear += 1;
-              });
-            }
+              void _decrementYear() {
+                setModalState(() {
+                  tempYear -= 1;
+                });
+              }
 
-            void _decrementYear() {
-              setModalState(() {
-                tempYear -= 1;
-              });
-            }
-
-            return Container(
-              height: 400,
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back),
-                        onPressed: _decrementYear,
-                      ),
-                      Text(
-                        '$tempYear',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              return Container(
+                height: 400,
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.arrow_back),
+                          onPressed: _decrementYear,
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.arrow_forward),
-                        onPressed: _incrementYear,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        childAspectRatio: 2,
-                      ),
-                      itemCount: 12,
-                      itemBuilder: (BuildContext context, int index) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedMonth = index + 1;
-                              selectedYear = tempYear;
-                              filterTransactions();
-                            });
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                            alignment: Alignment.center,
-                            margin: EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: selectedMonth == index + 1 &&
-                                      selectedYear == tempYear
-                                  ? Colors.blueAccent
-                                  : Colors.grey[300],
-                            ),
-                            child: Text(
-                              DateFormat('MMM').format(DateTime(0, index + 1)),
-                              style: TextStyle(
-                                color: selectedMonth == index + 1 &&
-                                        selectedYear == tempYear
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: FontWeight.bold,
+                        Text(
+                          '$tempYear',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.arrow_forward),
+                          onPressed: _incrementYear,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Expanded(
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          childAspectRatio: 2,
+                        ),
+                        itemCount: 12,
+                        itemBuilder: (BuildContext context, int index) {
+                          return GestureDetector(
+                            onTap: () {
+                              ref.read(selectedMonthProvider.notifier).state =
+                                  index + 1;
+                              ref.read(selectedYearProvider.notifier).state =
+                                  tempYear;
+                              _filterTransactions();
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              margin: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: ref.read(selectedMonthProvider) ==
+                                            index + 1 &&
+                                        ref.read(selectedYearProvider) ==
+                                            tempYear
+                                    ? Colors.blueAccent
+                                    : Colors.grey[300],
+                              ),
+                              child: Text(
+                                DateFormat('MMM')
+                                    .format(DateTime(0, index + 1)),
+                                style: TextStyle(
+                                  color: ref.read(selectedMonthProvider) ==
+                                              index + 1 &&
+                                          ref.read(selectedYearProvider) ==
+                                              tempYear
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
 
-  void _selectDate(BuildContext context) async {
-    _selectMonthYear(context);
-  }
-
-  void _previousMonth() {
-    setState(() {
-      if (selectedMonth == 1) {
-        selectedMonth = 12;
-        selectedYear = selectedYear! - 1;
+    void _previousMonth() {
+      if (ref.read(selectedMonthProvider) == 1) {
+        ref.read(selectedMonthProvider.notifier).state = 12;
+        ref.read(selectedYearProvider.notifier).state -= 1;
       } else {
-        selectedMonth = selectedMonth! - 1;
+        ref.read(selectedMonthProvider.notifier).state -= 1;
       }
-      filterTransactions();
-    });
-  }
+      _filterTransactions();
+    }
 
-  void _nextMonth() {
-    setState(() {
-      if (selectedMonth == 12) {
-        selectedMonth = 1;
-        selectedYear = selectedYear! + 1;
+    void _nextMonth() {
+      if (ref.read(selectedMonthProvider) == 12) {
+        ref.read(selectedMonthProvider.notifier).state = 1;
+        ref.read(selectedYearProvider.notifier).state += 1;
       } else {
-        selectedMonth = selectedMonth! + 1;
+        ref.read(selectedMonthProvider.notifier).state += 1;
       }
-      filterTransactions();
-    });
-  }
+      _filterTransactions();
+    }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Transactions'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              // Resetta tutti i provider e distruggi lo stato esistente
+              ref.read(authProvider.notifier).state =
+                  false; // Aggiorna lo stato di autenticazione
+
+              // Logout dell'utente e reindirizzamento alla schermata di login
+              bool success = await ApiService().logoutUser();
+              if (success) {
+                Navigator.pushReplacementNamed(context, '/login');
+              } else {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text('Logout fallito.')));
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -281,9 +223,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       icon: Icon(Icons.arrow_left),
                     ),
                     GestureDetector(
-                      onTap: () => _selectDate(context),
+                      onTap: () => _selectMonthYear(context),
                       child: Text(
-                        '$selectedMonth/$selectedYear',
+                        '${ref.read(selectedMonthProvider)}/${ref.read(selectedYearProvider)}',
                         style: TextStyle(
                             fontSize: 18.0, fontWeight: FontWeight.bold),
                       ),
@@ -302,10 +244,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                         isExpanded: true,
                         value: selectedLabel,
                         onChanged: (newValue) {
-                          setState(() {
-                            selectedLabel = newValue;
-                            filterTransactions();
-                          });
+                          ref.read(selectedLabelProvider.notifier).state =
+                              newValue;
+                          _filterTransactions();
                         },
                         items: [
                           DropdownMenuItem<Label>(
@@ -336,12 +277,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     SizedBox(width: 8.0),
                     IconButton(
                       onPressed: () {
-                        setState(() {
-                          selectedLabel = null;
-                          selectedMonth = DateTime.now().month;
-                          selectedYear = DateTime.now().year;
-                          filterTransactions();
-                        });
+                        ref.read(selectedLabelProvider.notifier).state = null;
+                        ref.read(selectedMonthProvider.notifier).state =
+                            DateTime.now().month;
+                        ref.read(selectedYearProvider.notifier).state =
+                            DateTime.now().year;
+                        _filterTransactions();
                       },
                       icon: Icon(Icons.refresh),
                       tooltip: 'Reset Filters',
@@ -409,7 +350,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                             child: ListTile(
                               title: Text(transaction.description),
                               subtitle: Text(
-                                "${transaction.date}", // Assuming transaction.date is a DateTime object
+                                "${transaction.date}",
                                 style: TextStyle(color: Colors.grey),
                               ),
                               trailing: Text(
@@ -437,7 +378,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
             ),
           );
           if (result != null && result) {
-            fetchTransactionsAndLabels();
+            ref.read(transactionProvider.notifier).fetchTransactions();
+            ref.read(labelProvider.notifier).fetchLabels();
           }
         },
         child: Icon(Icons.add),
