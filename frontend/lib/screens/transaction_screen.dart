@@ -7,6 +7,7 @@ import 'package:frontend/provider/provider.dart';
 import 'package:frontend/services/api_service.dart';
 import 'add_transaction_screen.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
 
 class TransactionScreen extends ConsumerWidget {
   @override
@@ -182,6 +183,91 @@ class TransactionScreen extends ConsumerWidget {
       _filterTransactions();
     }
 
+    Future<void> _selectLabel(BuildContext context) async {
+      showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setModalState) {
+              // Find the max width of the labels
+              double maxLabelWidth = 0;
+              for (var label in labels) {
+                final textPainter = TextPainter(
+                  text: TextSpan(
+                      text: label.label, style: TextStyle(fontSize: 16.0)),
+                  maxLines: 1,
+                  textDirection: ui.TextDirection.ltr,
+                )..layout();
+                if (textPainter.width > maxLabelWidth) {
+                  maxLabelWidth = textPainter.width;
+                }
+              }
+
+              return Container(
+                height: 400,
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Select Label',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Expanded(
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: maxLabelWidth / 30,
+                        ),
+                        itemCount: labels.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          Label label = labels[index];
+                          return GestureDetector(
+                            onTap: () {
+                              ref.read(selectedLabelProvider.notifier).state =
+                                  label;
+                              _filterTransactions();
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              margin: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: selectedLabel == label
+                                    ? Colors.blueAccent
+                                    : Colors.grey[300],
+                              ),
+                              child: Text(
+                                label.label,
+                                style: TextStyle(
+                                  color: selectedLabel == label
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Transactions'),
@@ -189,10 +275,6 @@ class TransactionScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              // Resetta tutti i provider e distruggi lo stato esistente
-              // Aggiorna lo stato di autenticazione
-
-              // Logout dell'utente e reindirizzamento alla schermata di login
               bool success = await ApiService().logoutUser();
               if (success) {
                 Navigator.pushReplacementNamed(context, '/login');
@@ -237,38 +319,24 @@ class TransactionScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButton<Label>(
-                        isExpanded: true,
-                        value: selectedLabel,
-                        onChanged: (newValue) {
-                          ref.read(selectedLabelProvider.notifier).state =
-                              newValue;
-                          _filterTransactions();
-                        },
-                        items: [
-                          DropdownMenuItem<Label>(
-                            value: null,
-                            child: Row(
-                              children: [
-                                Icon(Icons.label, color: Colors.blue),
-                                SizedBox(width: 8.0),
-                                Text('All'),
-                              ],
+                      child: GestureDetector(
+                        onTap: () => _selectLabel(context),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12.0, horizontal: 16.0),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Text(
+                            selectedLabel != null
+                                ? selectedLabel.label
+                                : 'Select Label',
+                            style: TextStyle(
+                              fontSize: 16.0,
                             ),
                           ),
-                          ...labels.map((label) {
-                            return DropdownMenuItem<Label>(
-                              value: label,
-                              child: Row(
-                                children: [
-                                  Icon(Icons.label, color: Colors.blue),
-                                  SizedBox(width: 8.0),
-                                  Text(label.label),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ],
+                        ),
                       ),
                     ),
                     SizedBox(width: 8.0),

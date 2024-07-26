@@ -97,8 +97,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   _loginButton(context) {
-    final userState2 = ref.watch(userProvider);
-    print(userState2?.firstname);
     final userState = ref.watch(userProvider.notifier);
 
     return _isLoading
