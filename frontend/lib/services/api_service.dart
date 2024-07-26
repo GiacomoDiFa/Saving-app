@@ -348,4 +348,22 @@ class ApiService {
       return 0;
     }
   }
+
+  Future<User> getUser() async {
+    final uri = Uri.parse('$apiBaseUrl/user/getuser');
+    final response = await http.get(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Cookie': 'token=$_authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      return User.fromJson(jsonResponse);
+    } else {
+      throw Exception('Failed to load user');
+    }
+  }
 }

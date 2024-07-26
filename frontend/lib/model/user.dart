@@ -3,7 +3,7 @@ class User {
   final String firstname;
   final String lastname;
   final String email;
-  final String password;
+  final String? password;
   final int age;
   final String sex;
 
@@ -12,7 +12,7 @@ class User {
     required this.firstname,
     required this.lastname,
     required this.email,
-    required this.password,
+    this.password,
     required this.age,
     required this.sex,
   });
@@ -26,5 +26,16 @@ class User {
       'age': age,
       'sex': sex,
     };
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['_id'],
+      firstname: json['firstname'],
+      lastname: json['lastname'],
+      email: json['email'],
+      age: json['age'],
+      sex: json['sex'],
+    );
   }
 }

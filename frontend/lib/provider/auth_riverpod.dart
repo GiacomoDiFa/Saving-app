@@ -1,4 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/model/user.dart';
 
-// Provider per gestire lo stato di autenticazione
-final authProvider = StateProvider<bool>((ref) => false);
+final authProvider = StateProvider<User?>((ref) => null);

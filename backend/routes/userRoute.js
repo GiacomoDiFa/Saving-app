@@ -16,6 +16,7 @@ const {
 } = require('../middleware/UserMiddleware')
 
 const otpGenerator = require('otp-generator')
+const authenticateJWT = require('../middleware/tokenmiddleware')
 
 function generateToken(user) {
   const payload = {
@@ -167,6 +168,28 @@ router.post('/sendotp', async (req, res) => {
     })
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+router.get('/getuser', authenticateJWT, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id) // Ottieni l'utente dal database usando l'ID dal token
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    const userData = {
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      age: user.age,
+      sex: user.sex,
+    }
+
+    res.json(userData)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
   }
 })
 

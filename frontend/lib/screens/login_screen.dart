@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/provider/auth_riverpod.dart';
-import 'package:frontend/services/api_service.dart';
+import 'package:frontend/provider/provider.dart'; // Assicurati che il percorso sia corretto
 
 class LoginScreen extends ConsumerStatefulWidget {
   @override
@@ -10,7 +9,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _apiService = ApiService();
   late String _email, _password;
   bool _isLoading = false;
 
@@ -99,6 +97,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   _loginButton(context) {
+    final userState2 = ref.watch(userProvider);
+    print(userState2?.firstname);
+    final userState = ref.watch(userProvider.notifier);
+
     return _isLoading
         ? CircularProgressIndicator()
         : ElevatedButton(
@@ -108,12 +110,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 setState(() {
                   _isLoading = true;
                 });
-                bool success = await _apiService.loginUser(_email, _password);
+                bool success = await userState.login(_email, _password);
                 setState(() {
                   _isLoading = false;
                 });
                 if (success) {
-                  ref.read(authProvider.notifier).state = false;
                   Navigator.pushReplacementNamed(context, '/home');
                 } else {
                   _showErrorDialog(context, 'Credenziali errate');
