@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/model/transaction.dart';
-import 'package:frontend/provider/auth_riverpod.dart';
 import 'package:frontend/provider/provider.dart';
 import 'package:frontend/services/api_service.dart';
 import 'add_transaction_screen.dart';
@@ -12,11 +11,10 @@ import 'dart:ui' as ui;
 class TransactionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAuthenticated = ref.watch(authProvider);
     final transactions = ref.watch(transactionProvider);
     final labels = ref.watch(labelProvider);
     final selectedLabel = ref.watch(selectedLabelProvider);
-    final isLoading = ref.watch(isLoadingProvider);
+    final isLoading = ref.watch(transactionProvider.notifier).isLoading;
 
     Future<void> _fetchInitialData() async {
       await ref.read(labelProvider.notifier).fetchLabels();
@@ -24,8 +22,6 @@ class TransactionScreen extends ConsumerWidget {
     }
 
     void _filterTransactions() {
-      ref.read(isLoadingProvider.notifier).state = true;
-
       ref
           .read(transactionProvider.notifier)
           .filterTransactions(
@@ -33,9 +29,7 @@ class TransactionScreen extends ConsumerWidget {
             ref.read(selectedMonthProvider),
             ref.read(selectedYearProvider),
           )
-          .then((_) {
-        ref.read(isLoadingProvider.notifier).state = false;
-      });
+          .then((_) {});
     }
 
     double getTotalExpenses() {

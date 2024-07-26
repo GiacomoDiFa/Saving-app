@@ -10,12 +10,15 @@ class TransactionState extends StateNotifier<List<Transaction>> {
 
   final Ref ref;
 
+  bool isLoading = false;
+
   Future<void> fetchTransactions() async {
     try {
+      isLoading = true;
       final apiService = ref.read(apiServiceProvider);
       final transactions = await apiService.getTransactions();
       state = transactions;
-      ref.read(isLoadingProvider.notifier).state = false;
+      isLoading = false;
     } catch (error) {
       print('failed to load the transactions');
     }
@@ -24,9 +27,11 @@ class TransactionState extends StateNotifier<List<Transaction>> {
   Future<void> filterTransactions(
       String? labelId, int? month, int? year) async {
     final apiService = ref.read(apiServiceProvider);
+    isLoading = true;
     final transactions =
         await apiService.filterTransactions(labelId, month, year);
     state = transactions;
+    isLoading = false;
   }
 
   // Funzione di pulizia

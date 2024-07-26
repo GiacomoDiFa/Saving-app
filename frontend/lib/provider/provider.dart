@@ -50,6 +50,3 @@ final labelProvider = StateNotifierProvider<LabelState, List<Label>>((ref) {
 final selectedLabelProvider = StateProvider<Label?>((ref) => null);
 final selectedMonthProvider = StateProvider<int>((ref) => DateTime.now().month);
 final selectedYearProvider = StateProvider<int>((ref) => DateTime.now().year);
-
-// Provider per lo stato di caricamento
-final isLoadingProvider = StateProvider<bool>((ref) => true);
