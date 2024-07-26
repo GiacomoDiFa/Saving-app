@@ -2,7 +2,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/provider/provider.dart';
-import 'package:frontend/screens/transaction_screen.dart';
 
 class LabelState extends StateNotifier<List<Label>> {
   LabelState(this.ref) : super([]) {
@@ -11,10 +10,11 @@ class LabelState extends StateNotifier<List<Label>> {
 
   final Ref ref;
 
-  bool isLoading = true;
+  bool isLoading = false;
 
   Future<void> fetchLabels() async {
     try {
+      isLoading = true;
       final _apiService = ref.read(apiServiceProvider);
       final fetchedLabels = await _apiService.getLabels();
       state = fetchedLabels;

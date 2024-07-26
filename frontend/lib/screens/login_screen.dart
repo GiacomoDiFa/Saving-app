@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/provider/auth_riverpod.dart';
+import 'package:frontend/services/api_service.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
   late String _email, _password;
@@ -14,20 +16,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Container(
-          margin: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _header(context),
-              _inputFields(context),
-              _loginButton(context),
-              _goToRegisterButton(context),
-            ],
-          ),
+    return Scaffold(
+      body: Container(
+        margin: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _header(context),
+            _inputFields(context),
+            _loginButton(context),
+            _goToRegisterButton(context),
+          ],
         ),
       ),
     );
@@ -114,6 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _isLoading = false;
                 });
                 if (success) {
+                  ref.read(authProvider.notifier).state = false;
                   Navigator.pushReplacementNamed(context, '/home');
                 } else {
                   _showErrorDialog(context, 'Credenziali errate');

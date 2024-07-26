@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/model/transaction.dart';
 import 'package:frontend/provider/auth_riverpod.dart';
-import 'package:frontend/provider/label_riverpod.dart';
 import 'package:frontend/provider/provider.dart';
-import 'package:frontend/provider/transaction_riverpod.dart';
 import 'package:frontend/services/api_service.dart';
 import 'add_transaction_screen.dart';
 import 'package:intl/intl.dart';
@@ -13,20 +11,22 @@ import 'package:intl/intl.dart';
 class TransactionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAuthenticated = ref.read(authProvider.notifier).state;
-
-    // Se non autenticato, esegui fetch di labels e transactions
-    if (!isAuthenticated) {
-      ref.read(labelProvider.notifier).fetchLabels();
-      ref.read(transactionProvider.notifier).fetchTransactions();
-    }
+    final isAuthenticated = ref.watch(authProvider);
+    print(isAuthenticated);
     final transactions = ref.watch(transactionProvider);
     final labels = ref.watch(labelProvider);
     final selectedLabel = ref.watch(selectedLabelProvider);
     final isLoading = ref.watch(isLoadingProvider);
 
+    Future<void> _fetchInitialData() async {
+      await ref.read(labelProvider.notifier).fetchLabels();
+      await ref.read(transactionProvider.notifier).fetchTransactions();
+      ref.read(authProvider.notifier).state = true;
+    }
+
     void _filterTransactions() {
       ref.read(isLoadingProvider.notifier).state = true;
+
       ref
           .read(transactionProvider.notifier)
           .filterTransactions(
@@ -192,13 +192,13 @@ class TransactionScreen extends ConsumerWidget {
             icon: Icon(Icons.logout),
             onPressed: () async {
               // Resetta tutti i provider e distruggi lo stato esistente
-              ref.read(authProvider.notifier).state =
-                  false; // Aggiorna lo stato di autenticazione
+              // Aggiorna lo stato di autenticazione
 
               // Logout dell'utente e reindirizzamento alla schermata di login
               bool success = await ApiService().logoutUser();
               if (success) {
                 Navigator.pushReplacementNamed(context, '/login');
+                ref.read(authProvider.notifier).state = false;
               } else {
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text('Logout fallito.')));
@@ -207,167 +207,182 @@ class TransactionScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+      body: FutureBuilder(
+        future: isAuthenticated ? Future.value(true) : _fetchInitialData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error loading data'));
+          } else {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: _previousMonth,
-                      icon: Icon(Icons.arrow_left),
-                    ),
-                    GestureDetector(
-                      onTap: () => _selectMonthYear(context),
-                      child: Text(
-                        '${ref.read(selectedMonthProvider)}/${ref.read(selectedYearProvider)}',
-                        style: TextStyle(
-                            fontSize: 18.0, fontWeight: FontWeight.bold),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: _previousMonth,
+                            icon: Icon(Icons.arrow_left),
+                          ),
+                          GestureDetector(
+                            onTap: () => _selectMonthYear(context),
+                            child: Text(
+                              '${ref.read(selectedMonthProvider)}/${ref.read(selectedYearProvider)}',
+                              style: TextStyle(
+                                  fontSize: 18.0, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: _nextMonth,
+                            icon: Icon(Icons.arrow_right),
+                          ),
+                        ],
                       ),
-                    ),
-                    IconButton(
-                      onPressed: _nextMonth,
-                      icon: Icon(Icons.arrow_right),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16.0),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButton<Label>(
-                        isExpanded: true,
-                        value: selectedLabel,
-                        onChanged: (newValue) {
-                          ref.read(selectedLabelProvider.notifier).state =
-                              newValue;
-                          _filterTransactions();
-                        },
-                        items: [
-                          DropdownMenuItem<Label>(
-                            value: null,
-                            child: Row(
-                              children: [
-                                Icon(Icons.label, color: Colors.blue),
-                                SizedBox(width: 8.0),
-                                Text('All'),
+                      SizedBox(height: 16.0),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButton<Label>(
+                              isExpanded: true,
+                              value: selectedLabel,
+                              onChanged: (newValue) {
+                                ref.read(selectedLabelProvider.notifier).state =
+                                    newValue;
+                                _filterTransactions();
+                              },
+                              items: [
+                                DropdownMenuItem<Label>(
+                                  value: null,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.label, color: Colors.blue),
+                                      SizedBox(width: 8.0),
+                                      Text('All'),
+                                    ],
+                                  ),
+                                ),
+                                ...labels.map((label) {
+                                  return DropdownMenuItem<Label>(
+                                    value: label,
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.label, color: Colors.blue),
+                                        SizedBox(width: 8.0),
+                                        Text(label.label),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
                               ],
                             ),
                           ),
-                          ...labels.map((label) {
-                            return DropdownMenuItem<Label>(
-                              value: label,
-                              child: Row(
-                                children: [
-                                  Icon(Icons.label, color: Colors.blue),
-                                  SizedBox(width: 8.0),
-                                  Text(label.label),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                          SizedBox(width: 8.0),
+                          IconButton(
+                            onPressed: () {
+                              ref.read(selectedLabelProvider.notifier).state =
+                                  null;
+                              ref.read(selectedMonthProvider.notifier).state =
+                                  DateTime.now().month;
+                              ref.read(selectedYearProvider.notifier).state =
+                                  DateTime.now().year;
+                              _filterTransactions();
+                            },
+                            icon: Icon(Icons.refresh),
+                            tooltip: 'Reset Filters',
+                          ),
                         ],
                       ),
-                    ),
-                    SizedBox(width: 8.0),
-                    IconButton(
-                      onPressed: () {
-                        ref.read(selectedLabelProvider.notifier).state = null;
-                        ref.read(selectedMonthProvider.notifier).state =
-                            DateTime.now().month;
-                        ref.read(selectedYearProvider.notifier).state =
-                            DateTime.now().year;
-                        _filterTransactions();
-                      },
-                      icon: Icon(Icons.refresh),
-                      tooltip: 'Reset Filters',
-                    ),
-                  ],
+                      SizedBox(height: 16.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: 'Total Expenses: ',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                TextSpan(
+                                  text:
+                                      '${getTotalExpenses().toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: 'Total Income: ',
+                                  style: TextStyle(color: Colors.green),
+                                ),
+                                TextSpan(
+                                  text:
+                                      '${getTotalIncome().toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'Total Expenses: ',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                          TextSpan(
-                            text: '${getTotalExpenses().toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
+                Expanded(
+                  child: isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : transactions.isEmpty
+                          ? Center(child: Text('No data available'))
+                          : ListView.builder(
+                              itemCount: transactions.length,
+                              itemBuilder: (context, index) {
+                                Transaction transaction = transactions[index];
+                                return Card(
+                                  elevation: 2.0,
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 8.0),
+                                  child: ListTile(
+                                    title: Text(transaction.description),
+                                    subtitle: Text(
+                                      "${transaction.date}",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                    trailing: Text(
+                                      transaction.amount.toString(),
+                                      style: TextStyle(
+                                        color: transaction.transactionType ==
+                                                'income'
+                                            ? Colors.green
+                                            : Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'Total Income: ',
-                            style: TextStyle(color: Colors.green),
-                          ),
-                          TextSpan(
-                            text: '${getTotalIncome().toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ],
-            ),
-          ),
-          Expanded(
-            child: isLoading
-                ? Center(child: CircularProgressIndicator())
-                : transactions.isEmpty
-                    ? Center(child: Text('No data available'))
-                    : ListView.builder(
-                        itemCount: transactions.length,
-                        itemBuilder: (context, index) {
-                          Transaction transaction = transactions[index];
-                          return Card(
-                            elevation: 2.0,
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 8.0),
-                            child: ListTile(
-                              title: Text(transaction.description),
-                              subtitle: Text(
-                                "${transaction.date}",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                              trailing: Text(
-                                transaction.amount.toString(),
-                                style: TextStyle(
-                                  color: transaction.transactionType == 'income'
-                                      ? Colors.green
-                                      : Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
+            );
+          }
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {

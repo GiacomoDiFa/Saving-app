@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/transaction.dart';
 import 'package:frontend/provider/provider.dart';
-import 'package:frontend/screens/transaction_screen.dart';
 
 // StateNotifier per la gestione delle transazioni e delle etichette
 class TransactionState extends StateNotifier<List<Transaction>> {
