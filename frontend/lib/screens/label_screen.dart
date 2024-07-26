@@ -273,6 +273,24 @@ class _LabelScreenState extends State<LabelScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Labels'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              // Resetta tutti i provider e distruggi lo stato esistente
+              // Aggiorna lo stato di autenticazione
+
+              // Logout dell'utente e reindirizzamento alla schermata di login
+              bool success = await ApiService().logoutUser();
+              if (success) {
+                Navigator.pushReplacementNamed(context, '/login');
+              } else {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text('Logout fallito.')));
+              }
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())

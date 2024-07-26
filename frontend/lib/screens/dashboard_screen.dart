@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/component/pie_chart.dart';
+import 'package:frontend/services/api_service.dart';
 import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -146,6 +147,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: Icon(Icons.arrow_forward),
             onPressed: _incrementMonth,
+          ),
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              // Resetta tutti i provider e distruggi lo stato esistente
+              // Aggiorna lo stato di autenticazione
+
+              // Logout dell'utente e reindirizzamento alla schermata di login
+              bool success = await ApiService().logoutUser();
+              if (success) {
+                Navigator.pushReplacementNamed(context, '/login');
+              } else {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text('Logout fallito.')));
+              }
+            },
           ),
         ],
       ),

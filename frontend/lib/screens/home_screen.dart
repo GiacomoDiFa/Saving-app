@@ -29,36 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-        actions: [
-          _isLoading
-              ? Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : IconButton(
-                  icon: Icon(Icons.logout),
-                  onPressed: () async {
-                    setState(() {
-                      _isLoading = true;
-                    });
-                    bool success = await _apiService.logoutUser();
-                    setState(() {
-                      _isLoading = false;
-                    });
-                    if (success) {
-                      Navigator.pushReplacementNamed(context, '/login');
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Logout fallito.')));
-                    }
-                  },
-                ),
-        ],
-      ),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),

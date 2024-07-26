@@ -198,7 +198,6 @@ class TransactionScreen extends ConsumerWidget {
               bool success = await ApiService().logoutUser();
               if (success) {
                 Navigator.pushReplacementNamed(context, '/login');
-                ref.read(authProvider.notifier).state = false;
               } else {
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text('Logout fallito.')));
