@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/model/label_expense.dart';
 import 'package:frontend/model/user.dart';
 import 'package:frontend/provider/label_riverpod.dart';
+import 'package:frontend/provider/labelexpences_riverpod.dart';
 import 'package:frontend/provider/transaction_riverpod.dart';
 import 'package:frontend/provider/user_riverpod.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/model/transaction.dart';
 import 'package:frontend/model/label.dart';
+import 'package:http/retry.dart';
 
 // Provider per ApiService
 final apiServiceProvider = Provider((ref) => ApiService());
@@ -22,6 +25,19 @@ final transactionProvider =
   }
 
   return transactionNotifier;
+});
+
+final labelexpencesProvider =
+    StateNotifierProvider<LabelExpencesState, List<LabelExpense>>((ref) {
+  final user = ref.watch(userProvider);
+  final labelespencesNotifier = LabelExpencesState(ref);
+  ref.onDispose(() {
+    labelespencesNotifier.clearLabelsExpences();
+  });
+  if (user != null) {
+    labelespencesNotifier.fetchLabelExpences();
+  }
+  return labelespencesNotifier;
 });
 
 // Provider per l'utente

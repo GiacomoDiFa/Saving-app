@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.monitor_heart_rounded),
-            label: 'Statistic',
+            label: 'Statistics',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.attach_money_rounded),

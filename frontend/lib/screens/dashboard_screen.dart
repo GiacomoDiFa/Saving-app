@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/component/bar_char.dart';
 import 'package:frontend/component/pie_chart.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   DateTime selectedDate = DateTime.now();
+  int selectedIndex = 0; // Indice per il PageView
 
   void _incrementMonth() {
     setState(() {
@@ -151,10 +153,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              // Resetta tutti i provider e distruggi lo stato esistente
-              // Aggiorna lo stato di autenticazione
-
-              // Logout dell'utente e reindirizzamento alla schermata di login
               bool success = await ApiService().logoutUser();
               if (success) {
                 Navigator.pushReplacementNamed(context, '/login');
@@ -168,10 +166,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: PieChartSample3(
-            selectedMonth: DateFormat('yyyy-MM').format(selectedDate),
-          ),
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView(
+                onPageChanged: (int index) {
+                  setState(() {
+                    selectedIndex = index;
+                  });
+                },
+                children: [
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Pie Chart',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 20),
+                        Expanded(
+                          child: PieChartSample3(
+                            selectedMonth:
+                                DateFormat('yyyy-MM').format(selectedDate),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Label Expenses Bar Chart',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 20),
+                        Expanded(
+                          child: BarChartSample(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  selectedIndex == 0 ? Icons.circle : Icons.circle_outlined,
+                  color: Colors.blue,
+                ),
+                SizedBox(width: 10),
+                Icon(
+                  selectedIndex == 1 ? Icons.circle : Icons.circle_outlined,
+                  color: Colors.blue,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

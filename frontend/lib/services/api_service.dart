@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:frontend/model/label_expense.dart';
 import 'package:frontend/model/transaction.dart';
 import 'package:http/http.dart' as http;
 import '../model/user.dart';
@@ -364,6 +365,25 @@ class ApiService {
       return User.fromJson(jsonResponse);
     } else {
       throw Exception('Failed to load user');
+    }
+  }
+
+  Future<List<LabelExpense>> getLabelsExpenses() async {
+    final uri = Uri.parse('$apiBaseUrl/expense/label');
+    final response = await http.get(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Cookie': 'token=$_authToken',
+      },
+    );
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<LabelExpense> labelexpenses =
+          data.map((item) => LabelExpense.fromJson(item)).toList();
+      return labelexpenses;
+    } else {
+      throw Exception('Failed to load labelExpences');
     }
   }
 }
