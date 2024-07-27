@@ -413,7 +413,9 @@ class TransactionScreen extends ConsumerWidget {
                                 style: TextStyle(color: Colors.grey),
                               ),
                               trailing: Text(
-                                transaction.amount.toString(),
+                                transaction.transactionType == 'income'
+                                    ? '+' + transaction.amount.toString()
+                                    : '-' + transaction.amount.toString(),
                                 style: TextStyle(
                                   color: transaction.transactionType == 'income'
                                       ? Colors.green
