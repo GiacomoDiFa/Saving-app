@@ -32,14 +32,29 @@ router.get('/monthly', authenticateToken, async (req, res) => {
   }
 })
 
-router.get('/label', authenticateToken, async (req, res) => {
+router.post('/label', authenticateToken, async (req, res) => {
   try {
     const userId = req.userId
+    const { yearMonth } = req.body
+
+    // Verifica che yearMonth sia fornito e sia nel formato corretto
+    if (!yearMonth || !/^\d{4}-\d{2}-\d{2}$/.test(yearMonth)) {
+      return res.status(400).send('Invalid or missing yearMonth')
+    }
+
+    const startDate = new Date(yearMonth)
+    const endDate = new Date(startDate)
+    endDate.setMonth(endDate.getMonth() + 1)
+
     const result = await Transaction.aggregate([
       {
         $match: {
           transactionType: 'expense',
           userId: new mongoose.Types.ObjectId(userId),
+          date: {
+            $gte: startDate,
+            $lt: endDate,
+          },
         },
       },
       {
