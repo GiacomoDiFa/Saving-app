@@ -344,7 +344,6 @@ class ApiService {
       }),
     );
     if (response.statusCode == 200) {
-      print(response.body);
       return num.parse(response.body);
     } else {
       return 0;
@@ -369,14 +368,17 @@ class ApiService {
     }
   }
 
-  Future<List<LabelExpense>> getLabelsExpenses() async {
+  Future<List<LabelExpense>> getLabelsExpenses(date) async {
     final uri = Uri.parse('$apiBaseUrl/expense/label');
-    final response = await http.get(
+    final response = await http.post(
       uri,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Cookie': 'token=$_authToken',
       },
+      body: jsonEncode(<String, String>{
+        'yearMonth': date,
+      }),
     );
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);

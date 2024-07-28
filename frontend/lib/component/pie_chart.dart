@@ -7,6 +7,7 @@ class PieChartSample3 extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statistical = ref.watch(statisticalProvider);
+    final isLoading = ref.watch(statisticalProvider.notifier).isLoading;
     final income = statistical.income ?? 0;
     final showNoChartMessage = income == 0;
 
@@ -55,30 +56,34 @@ class PieChartSample3 extends ConsumerWidget {
       child: Column(
         children: [
           Expanded(
-            child: showNoChartMessage
+            child: isLoading
                 ? Center(
-                    child: Text(
-                      'No pie chart available',
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                    ),
+                    child: CircularProgressIndicator(),
                   )
-                : PieChart(
-                    PieChartData(
-                      borderData: FlBorderData(show: false),
-                      sectionsSpace: 0,
-                      centerSpaceRadius: 0,
-                      sections: chartData.isNotEmpty
-                          ? chartData
-                          : [
-                              PieChartSectionData(
-                                  color: Colors.grey,
-                                  value: 100,
-                                  title: 'Loading')
-                            ],
-                    ),
-                  ),
+                : showNoChartMessage
+                    ? Center(
+                        child: Text(
+                          'No pie chart available',
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                        ),
+                      )
+                    : PieChart(
+                        PieChartData(
+                          borderData: FlBorderData(show: false),
+                          sectionsSpace: 0,
+                          centerSpaceRadius: 0,
+                          sections: chartData.isNotEmpty
+                              ? chartData
+                              : [
+                                  PieChartSectionData(
+                                      color: Colors.grey,
+                                      value: 100,
+                                      title: 'Loading')
+                                ],
+                        ),
+                      ),
           ),
-          if (!showNoChartMessage) ...[
+          if (!showNoChartMessage && !isLoading) ...[
             SizedBox(height: 16), // Space between the chart and the legend
             Container(
               margin: EdgeInsets.only(top: 100),

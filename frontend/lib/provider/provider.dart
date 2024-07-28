@@ -46,12 +46,14 @@ final statisticalProvider =
 final labelexpencesProvider =
     StateNotifierProvider<LabelExpencesState, List<LabelExpense>>((ref) {
   final user = ref.watch(userProvider);
+  final month = ref.watch(selectedMonthProvider);
+  final year = ref.watch(selectedYearProvider);
   final labelespencesNotifier = LabelExpencesState(ref);
   ref.onDispose(() {
     labelespencesNotifier.clearLabelsExpences();
   });
   if (user != null) {
-    labelespencesNotifier.fetchLabelExpences();
+    labelespencesNotifier.fetchLabelExpences(month.toString(), year.toString());
   }
   return labelespencesNotifier;
 });
