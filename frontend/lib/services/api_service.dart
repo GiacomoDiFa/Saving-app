@@ -344,6 +344,7 @@ class ApiService {
       }),
     );
     if (response.statusCode == 200) {
+      print(response.body);
       return num.parse(response.body);
     } else {
       return 0;

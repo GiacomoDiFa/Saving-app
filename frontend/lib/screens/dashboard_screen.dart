@@ -1,28 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/component/bar_char.dart';
 import 'package:frontend/component/pie_chart.dart';
+import 'package:frontend/provider/provider.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:intl/intl.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DateTime selectedDate = DateTime.now();
   int selectedIndex = 0; // Indice per il PageView
 
-  void _incrementMonth() {
+  void _updateSelectedDate(DateTime newDate) {
     setState(() {
-      selectedDate = DateTime(selectedDate.year, selectedDate.month + 1);
+      selectedDate = newDate;
+      ref.read(selectedMonthProvider.notifier).state = newDate.month;
+      ref.read(selectedYearProvider.notifier).state = newDate.year;
+      ref
+          .read(statisticalProvider.notifier)
+          .fetchStatistical(newDate.month, newDate.year);
     });
   }
 
+  void _incrementMonth() {
+    _updateSelectedDate(DateTime(selectedDate.year, selectedDate.month + 1));
+  }
+
   void _decrementMonth() {
-    setState(() {
-      selectedDate = DateTime(selectedDate.year, selectedDate.month - 1);
-    });
+    _updateSelectedDate(DateTime(selectedDate.year, selectedDate.month - 1));
   }
 
   Future<void> _selectMonthYear(BuildContext context) async {
@@ -84,9 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       itemBuilder: (BuildContext context, int index) {
                         return GestureDetector(
                           onTap: () {
-                            setState(() {
-                              selectedDate = DateTime(tempYear, index + 1);
-                            });
+                            _updateSelectedDate(DateTime(tempYear, index + 1));
                             Navigator.pop(context);
                           },
                           child: Container(
@@ -187,10 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         SizedBox(height: 20),
                         Expanded(
-                          child: PieChartSample3(
-                            selectedMonth:
-                                DateFormat('yyyy-MM').format(selectedDate),
-                          ),
+                          child: PieChartSample3(),
                         ),
                       ],
                     ),
