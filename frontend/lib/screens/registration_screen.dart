@@ -55,13 +55,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         children: [
           TextFormField(
             decoration: InputDecoration(
-              hintText: "Firsname",
+              hintText: "Firstname",
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: BorderSide.none),
               fillColor: Colors.purple.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.email),
+              prefixIcon: const Icon(Icons.person),
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -83,9 +83,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   borderSide: BorderSide.none),
               fillColor: Colors.purple.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.lock),
+              prefixIcon: const Icon(Icons.person),
             ),
-            obscureText: true,
+            obscureText: false,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Insert the last name';
@@ -127,8 +127,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   borderSide: BorderSide.none),
               fillColor: Colors.purple.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.email),
+              prefixIcon: const Icon(Icons.lock),
             ),
+            obscureText: true,
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -149,9 +150,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   borderSide: BorderSide.none),
               fillColor: Colors.purple.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.email),
+              prefixIcon: const Icon(Icons.calendar_month),
             ),
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.number,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Insert the age';
@@ -165,13 +166,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           SizedBox(height: 16.0),
           TextFormField(
             decoration: InputDecoration(
-              hintText: "Age",
+              hintText: "Sex",
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: BorderSide.none),
               fillColor: Colors.purple.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.email),
+              prefixIcon: const Icon(Icons.transgender),
             ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -193,9 +194,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   borderSide: BorderSide.none),
               fillColor: Colors.purple.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.email),
+              prefixIcon: const Icon(Icons.onetwothree),
             ),
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.number,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Insert the OTP';
@@ -246,7 +247,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               backgroundColor: Colors.purple,
             ),
             child: const Text(
-              "Login",
+              "Register",
               style: TextStyle(fontSize: 20, color: Colors.white),
             ),
           );
