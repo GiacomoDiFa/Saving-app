@@ -5,6 +5,7 @@ import 'package:frontend/model/transaction.dart';
 import 'package:frontend/provider/provider.dart';
 import 'package:frontend/services/api_service.dart';
 import 'add_transaction_screen.dart';
+import 'transaction_detail_screen.dart'; // Importa la nuova schermata
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 
@@ -423,6 +424,18 @@ class TransactionScreen extends ConsumerWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        TransactionDetailScreen(
+                                      transaction: transaction,
+                                      labels: ref.watch(labelProvider),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
