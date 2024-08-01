@@ -37,7 +37,11 @@ class TransactionDetailScreen extends ConsumerWidget {
               child: Text('Elimina'),
               onPressed: () {
                 // Esegui l'eliminazione della transazione
-                ref.watch(provider.notifier).deleteTransaction(id);
+                ref.watch(provider.notifier).deleteTransaction(
+                    id,
+                    ref.watch(selectedLabelProvider.notifier).state?.label,
+                    ref.watch(selectedMonthProvider),
+                    ref.watch(selectedYearProvider));
                 Navigator.of(context).pop();
                 Navigator.pushReplacementNamed(context, '/home');
               },
