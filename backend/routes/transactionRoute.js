@@ -71,7 +71,6 @@ router.get(
 
       // Esegui la query usando il filtro costruito
       const transactions = await Transaction.find(filter)
-      console.log(transactions)
 
       // Ritorna le transazioni trovate
       res.json(transactions)
