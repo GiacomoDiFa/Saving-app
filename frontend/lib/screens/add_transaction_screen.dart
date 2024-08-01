@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/provider/provider.dart';
+import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/services/api_service.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
@@ -44,7 +45,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           ref.watch(selectedMonthProvider), ref.watch(selectedYearProvider));
       await ref.watch(labelexpencesProvider.notifier).fetchLabelExpences(
           ref.watch(selectedMonthProvider), ref.watch(selectedYearProvider));
-      Navigator.of(context).pop();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+            builder: (context) =>
+                HomeScreen()), // Sostituisci `HomeScreen` con il widget della tua schermata home
+        (Route<dynamic> route) => false,
+      );
     }
   }
 

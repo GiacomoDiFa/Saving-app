@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/model/transaction.dart';
 import 'package:frontend/provider/provider.dart';
+import 'package:frontend/screens/home_screen.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final Transaction transaction;
@@ -48,7 +49,12 @@ class TransactionDetailScreen extends ConsumerWidget {
                 await ref.watch(provider3.notifier).fetchLabelExpences(
                     ref.watch(selectedMonthProvider),
                     ref.watch(selectedYearProvider));
-                Navigator.pushReplacementNamed(context, '/home');
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          HomeScreen()), // Sostituisci `HomeScreen` con il widget della tua schermata home
+                  (Route<dynamic> route) => false,
+                );
               },
             ),
           ],
