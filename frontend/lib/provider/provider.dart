@@ -84,6 +84,26 @@ final labelProvider = StateNotifierProvider<LabelState, List<Label>>((ref) {
 });
 
 // Provider per il filtro selezionato
-final selectedLabelProvider = StateProvider<Label?>((ref) => null);
-final selectedMonthProvider = StateProvider<int>((ref) => DateTime.now().month);
-final selectedYearProvider = StateProvider<int>((ref) => DateTime.now().year);
+final selectedLabelProvider = StateProvider<Label?>((ref) {
+  final user = ref.watch(userProvider);
+  if (user != null) {
+    return null;
+  }
+  return null;
+});
+
+final selectedMonthProvider = StateProvider<int>((ref) {
+  final user = ref.watch(userProvider);
+  if (user != null) {
+    return DateTime.now().month;
+  }
+  return DateTime.now().month;
+});
+
+final selectedYearProvider = StateProvider<int>((ref) {
+  final user = ref.watch(userProvider);
+  if (user != null) {
+    return DateTime.now().year;
+  }
+  return DateTime.now().year;
+});
