@@ -37,7 +37,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           _transactionType,
           _transactionAmount.toString(),
           _transactionDescription,
-          ref.watch(selectedLabelProvider.notifier).state?.label,
+          ref.watch(selectedLabelProvider.notifier).state?.id,
           ref.watch(selectedMonthProvider),
           ref.watch(selectedYearProvider));
       await ref.watch(statisticalProvider.notifier).fetchStatistical(

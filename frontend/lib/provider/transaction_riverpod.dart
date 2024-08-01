@@ -39,8 +39,10 @@ class TransactionState extends StateNotifier<List<Transaction>> {
       isLoading = true;
       final apiService = ref.read(apiServiceProvider);
       final success = await apiService.deleteTransaction(id);
+      final label = ref.watch(selectedLabelProvider.notifier).state = null;
+      print(success);
       if (success) {
-        await fetchTransactions(labelId, month, year);
+        await fetchTransactions(label, month, year);
       } else {
         isLoading = false;
       }
@@ -62,8 +64,10 @@ class TransactionState extends StateNotifier<List<Transaction>> {
       final apiService = ref.read(apiServiceProvider);
       final success = await apiService.addTransaction(
           label, transactionType, amount, description);
+      final labelSelected =
+          ref.watch(selectedLabelProvider.notifier).state = null;
       if (success) {
-        await fetchTransactions(labelId, month, year);
+        await fetchTransactions(labelSelected, month, year);
       } else {
         isLoading = false;
       }

@@ -48,7 +48,6 @@ class TransactionDetailScreen extends ConsumerWidget {
                 await ref.watch(provider3.notifier).fetchLabelExpences(
                     ref.watch(selectedMonthProvider),
                     ref.watch(selectedYearProvider));
-                Navigator.of(context).pop();
                 Navigator.pushReplacementNamed(context, '/home');
               },
             ),
