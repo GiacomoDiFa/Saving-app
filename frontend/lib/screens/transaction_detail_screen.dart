@@ -17,8 +17,8 @@ class TransactionDetailScreen extends ConsumerWidget {
     // Implementa la logica per modificare la transazione
   }
 
-  void _deleteTransaction(
-      BuildContext context, String id, dynamic provider, WidgetRef ref) {
+  void _deleteTransaction(BuildContext context, String id, WidgetRef ref,
+      dynamic provider, dynamic provider2, dynamic provider3) {
     // Implementa la logica per eliminare la transazione
     showDialog(
       context: context,
@@ -35,11 +35,17 @@ class TransactionDetailScreen extends ConsumerWidget {
             ),
             TextButton(
               child: Text('Elimina'),
-              onPressed: () {
+              onPressed: () async {
                 // Esegui l'eliminazione della transazione
-                ref.watch(provider.notifier).deleteTransaction(
+                await ref.watch(provider.notifier).deleteTransaction(
                     id,
                     ref.watch(selectedLabelProvider.notifier).state?.label,
+                    ref.watch(selectedMonthProvider),
+                    ref.watch(selectedYearProvider));
+                await ref.watch(provider2.notifier).fetchStatistical(
+                    ref.watch(selectedMonthProvider),
+                    ref.watch(selectedYearProvider));
+                await ref.watch(provider3.notifier).fetchLabelExpences(
                     ref.watch(selectedMonthProvider),
                     ref.watch(selectedYearProvider));
                 Navigator.of(context).pop();
@@ -138,7 +144,12 @@ class TransactionDetailScreen extends ConsumerWidget {
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _deleteTransaction(
-                          context, transaction.id, transactionProvider, ref),
+                          context,
+                          transaction.id,
+                          ref,
+                          transactionProvider,
+                          statisticalProvider,
+                          labelexpencesProvider),
                     ),
                   ],
                 ),
