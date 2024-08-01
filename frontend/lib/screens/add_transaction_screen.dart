@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
+import 'package:frontend/provider/provider.dart';
 import 'package:frontend/services/api_service.dart';
 
-class AddTransactionScreen extends StatefulWidget {
+class AddTransactionScreen extends ConsumerStatefulWidget {
   final List<Label> labels;
 
   AddTransactionScreen({required this.labels});
@@ -11,7 +13,7 @@ class AddTransactionScreen extends StatefulWidget {
   _AddTransactionScreenState createState() => _AddTransactionScreenState();
 }
 
-class _AddTransactionScreenState extends State<AddTransactionScreen> {
+class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedLabel;
   String _transactionType = 'expense';
@@ -30,12 +32,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   Future<void> _addTransaction() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      bool success = await _apiService.addTransaction(
+      await ref.watch(transactionProvider.notifier).addTransaction(
           _selectedLabel!,
           _transactionType,
           _transactionAmount.toString(),
-          _transactionDescription);
-      Navigator.of(context).pop(success);
+          _transactionDescription,
+          ref.watch(selectedLabelProvider.notifier).state?.label,
+          ref.watch(selectedMonthProvider),
+          ref.watch(selectedYearProvider));
+      Navigator.of(context).pop();
     }
   }
 

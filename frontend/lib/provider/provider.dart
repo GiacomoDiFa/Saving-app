@@ -22,7 +22,10 @@ final transactionProvider =
     transactionNotifier.clearTransactions();
   });
   if (user != null) {
-    transactionNotifier.fetchTransactions();
+    transactionNotifier.fetchTransactions(
+        ref.watch(selectedLabelProvider.notifier).state?.label,
+        ref.watch(selectedMonthProvider),
+        ref.watch(selectedYearProvider));
   }
 
   return transactionNotifier;

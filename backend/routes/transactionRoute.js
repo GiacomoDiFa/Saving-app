@@ -42,28 +42,36 @@ router.get(
       }
 
       if (month !== null && year !== null) {
-        // Calcola la data inizio e fine del mese
+        // Calcola la data di inizio e fine del mese
         const startDate = new Date(year, month - 1, 1) // month - 1 perché JavaScript considera i mesi da 0 a 11
-        const endDate = new Date(year, month, 0) // Ultimo giorno del mese precedente
+        const endDate = new Date(year, month, 0) // Ultimo giorno del mese
+
+        // Aggiungi un giorno per includere tutto il giorno finale
+        endDate.setDate(endDate.getDate() + 1)
 
         // Aggiungi la clausola per filtrare per data
-        filter.date = { $gte: startDate, $lte: endDate }
+        filter.date = { $gte: startDate, $lt: endDate }
       } else if (month !== null) {
-        // Se è specificato solo il mese, filtriamo per tutto il mese corrispondente
-        const startDate = new Date(new Date().getFullYear(), month - 1, 1) // Mese corrente dell'anno corrente
-        const endDate = new Date(new Date().getFullYear(), month, 0) // Ultimo giorno del mese corrente
+        // Se è specificato solo il mese, filtriamo per tutto il mese corrente dell'anno corrente
+        const year = new Date().getFullYear()
+        const startDate = new Date(year, month - 1, 1) // Mese corrente dell'anno corrente
+        const endDate = new Date(year, month, 0) // Ultimo giorno del mese corrente
 
-        filter.date = { $gte: startDate, $lte: endDate }
+        // Aggiungi un giorno per includere tutto il giorno finale
+        endDate.setDate(endDate.getDate() + 1)
+
+        filter.date = { $gte: startDate, $lt: endDate }
       } else if (year !== null) {
         // Se è specificato solo l'anno, filtriamo per tutto l'anno corrispondente
         const startDate = new Date(year, 0, 1) // Inizio dell'anno specificato
-        const endDate = new Date(year, 11, 31) // Fine dell'anno specificato
+        const endDate = new Date(year + 1, 0, 1) // Inizio dell'anno successivo
 
-        filter.date = { $gte: startDate, $lte: endDate }
+        filter.date = { $gte: startDate, $lt: endDate }
       }
 
       // Esegui la query usando il filtro costruito
       const transactions = await Transaction.find(filter)
+      console.log(transactions)
 
       // Ritorna le transazioni trovate
       res.json(transactions)
@@ -106,6 +114,27 @@ router.post('/add', authenticateToken, async (req, res) => {
 
 router.post('/modify/:id')
 
-router.post('/delete/:id')
+router.post('/delete', authenticateToken, async (req, res) => {
+  try {
+    const { transactionId } = req.body
+    const userId = req.userId
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    const result = await Transaction.findOne({
+      userId: userId,
+      _id: transactionId,
+    })
+    if (result) {
+      await Transaction.deleteOne({ userId: userId, _id: transactionId })
+      res.status(200).json({ message: 'Transaction deleted successfully' })
+    } else {
+      res.status(500).json({ error: error.message })
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
 
 module.exports = router

@@ -19,7 +19,10 @@ class TransactionScreen extends ConsumerWidget {
 
     Future<void> _fetchInitialData() async {
       await ref.read(labelProvider.notifier).fetchLabels();
-      await ref.read(transactionProvider.notifier).fetchTransactions();
+      await ref.read(transactionProvider.notifier).fetchTransactions(
+          selectedLabel?.label,
+          ref.watch(selectedMonthProvider),
+          ref.watch(selectedYearProvider));
     }
 
     void _filterTransactions() {
@@ -431,7 +434,6 @@ class TransactionScreen extends ConsumerWidget {
                                     builder: (context) =>
                                         TransactionDetailScreen(
                                       transaction: transaction,
-                                      labels: ref.watch(labelProvider),
                                     ),
                                   ),
                                 );
@@ -452,7 +454,10 @@ class TransactionScreen extends ConsumerWidget {
             ),
           );
           if (result != null && result) {
-            ref.read(transactionProvider.notifier).fetchTransactions();
+            ref.read(transactionProvider.notifier).fetchTransactions(
+                selectedLabel?.label,
+                ref.watch(selectedMonthProvider),
+                ref.watch(selectedYearProvider));
             ref.read(labelProvider.notifier).fetchLabels();
           }
         },

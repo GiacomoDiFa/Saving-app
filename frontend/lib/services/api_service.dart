@@ -274,6 +274,25 @@ class ApiService {
     }
   }
 
+  Future<bool> deleteTransaction(String id) async {
+    final uri = Uri.parse('$apiBaseUrl/transaction/delete');
+    final response = await http.post(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Cookie': 'token=$_authToken',
+      },
+      body: jsonEncode(<String, String>{
+        'transactionId': id,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<num> getFundamentalMonthly(String month) async {
     final uri = Uri.parse('$apiBaseUrl/summary/fundamentals');
     final response = await http.post(
