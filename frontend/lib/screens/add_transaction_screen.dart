@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/provider/provider.dart';
@@ -33,24 +34,28 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   Future<void> _addTransaction() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      await ref.watch(transactionProvider.notifier).addTransaction(
-          _selectedLabel!,
-          _transactionType,
-          _transactionAmount.toString(),
-          _transactionDescription,
-          ref.watch(selectedLabelProvider.notifier).state?.id,
-          ref.watch(selectedMonthProvider),
-          ref.watch(selectedYearProvider));
-      await ref.watch(statisticalProvider.notifier).fetchStatistical(
-          ref.watch(selectedMonthProvider), ref.watch(selectedYearProvider));
-      await ref.watch(labelexpencesProvider.notifier).fetchLabelExpences(
-          ref.watch(selectedMonthProvider), ref.watch(selectedYearProvider));
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-            builder: (context) =>
-                HomeScreen()), // Sostituisci `HomeScreen` con il widget della tua schermata home
-        (Route<dynamic> route) => false,
-      );
+      EasyLoading.show(status: 'Loading...');
+      try {
+        await ref.watch(transactionProvider.notifier).addTransaction(
+            _selectedLabel!,
+            _transactionType,
+            _transactionAmount.toString(),
+            _transactionDescription,
+            ref.watch(selectedLabelProvider.notifier).state?.id,
+            ref.watch(selectedMonthProvider),
+            ref.watch(selectedYearProvider));
+        await ref.watch(statisticalProvider.notifier).fetchStatistical(
+            ref.watch(selectedMonthProvider), ref.watch(selectedYearProvider));
+        await ref.watch(labelexpencesProvider.notifier).fetchLabelExpences(
+            ref.watch(selectedMonthProvider), ref.watch(selectedYearProvider));
+        EasyLoading.showSuccess('Transaction added successfully!');
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+          (Route<dynamic> route) => false,
+        );
+      } catch (error) {
+        EasyLoading.showError('Failed to add transaction');
+      }
     }
   }
 

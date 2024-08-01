@@ -40,7 +40,6 @@ class TransactionState extends StateNotifier<List<Transaction>> {
       final apiService = ref.read(apiServiceProvider);
       final success = await apiService.deleteTransaction(id);
       final label = ref.watch(selectedLabelProvider.notifier).state = null;
-      print(success);
       if (success) {
         await fetchTransactions(label, month, year);
       } else {

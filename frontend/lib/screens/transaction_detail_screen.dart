@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/model/transaction.dart';
@@ -37,24 +38,30 @@ class TransactionDetailScreen extends ConsumerWidget {
             TextButton(
               child: Text('Elimina'),
               onPressed: () async {
-                // Esegui l'eliminazione della transazione
-                await ref.watch(provider.notifier).deleteTransaction(
-                    id,
-                    ref.watch(selectedLabelProvider.notifier).state?.label,
-                    ref.watch(selectedMonthProvider),
-                    ref.watch(selectedYearProvider));
-                await ref.watch(provider2.notifier).fetchStatistical(
-                    ref.watch(selectedMonthProvider),
-                    ref.watch(selectedYearProvider));
-                await ref.watch(provider3.notifier).fetchLabelExpences(
-                    ref.watch(selectedMonthProvider),
-                    ref.watch(selectedYearProvider));
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          HomeScreen()), // Sostituisci `HomeScreen` con il widget della tua schermata home
-                  (Route<dynamic> route) => false,
-                );
+                EasyLoading.show(status: 'Loading...');
+                try {
+                  // Esegui l'eliminazione della transazione
+                  await ref.watch(provider.notifier).deleteTransaction(
+                      id,
+                      ref.watch(selectedLabelProvider.notifier).state?.label,
+                      ref.watch(selectedMonthProvider),
+                      ref.watch(selectedYearProvider));
+                  await ref.watch(provider2.notifier).fetchStatistical(
+                      ref.watch(selectedMonthProvider),
+                      ref.watch(selectedYearProvider));
+                  await ref.watch(provider3.notifier).fetchLabelExpences(
+                      ref.watch(selectedMonthProvider),
+                      ref.watch(selectedYearProvider));
+                  EasyLoading.showSuccess('Transaction deleted successfully!');
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            HomeScreen()), // Sostituisci `HomeScreen` con il widget della tua schermata home
+                    (Route<dynamic> route) => false,
+                  );
+                } catch (error) {
+                  EasyLoading.showError('Failed to delete transaction');
+                }
               },
             ),
           ],

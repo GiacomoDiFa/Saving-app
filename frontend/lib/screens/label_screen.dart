@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/provider/provider.dart';
@@ -14,36 +15,6 @@ class LabelScreen extends ConsumerWidget {
       if (user != null) {
         await ref.read(labelProvider.notifier).fetchLabels();
       }
-    }
-
-    void showStatusDialog(String message, bool isSuccess) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Row(
-              children: [
-                Icon(
-                  isSuccess ? Icons.check_circle : Icons.error,
-                  color: isSuccess ? Colors.green : Colors.red,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(message),
-                ),
-              ],
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
     }
 
     Future<void> _showAddOrEditLabelDialog({Label? label}) async {
@@ -104,16 +75,37 @@ class LabelScreen extends ConsumerWidget {
                 child: Text('Cancel'),
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (labelName.isNotEmpty && fieldValue.isNotEmpty) {
                     if (label == null) {
-                      ref
-                          .read(labelProvider.notifier)
-                          .addLabel(labelName, fieldValue);
+                      EasyLoading.show(status: 'Loading...');
+                      try {
+                        final result = await ref
+                            .read(labelProvider.notifier)
+                            .addLabel(labelName, fieldValue);
+                        if (result) {
+                          EasyLoading.showSuccess('Label added successfully');
+                        } else {
+                          EasyLoading.showError('Failed to add label');
+                        }
+                      } catch (error) {
+                        EasyLoading.showError('Failed to add label');
+                      }
                     } else {
-                      ref
-                          .read(labelProvider.notifier)
-                          .updateLabel(label!, labelName, fieldValue);
+                      EasyLoading.show(status: 'Loading...');
+                      try {
+                        final result = await ref
+                            .read(labelProvider.notifier)
+                            .updateLabel(label!, labelName, fieldValue);
+                        if (result) {
+                          EasyLoading.showSuccess(
+                              'Label modified successfully');
+                        } else {
+                          EasyLoading.showError('Failed to modify label');
+                        }
+                      } catch (error) {
+                        EasyLoading.showError('Failed to modify label');
+                      }
                     }
                     Navigator.of(context).pop();
                   } else {
@@ -147,9 +139,21 @@ class LabelScreen extends ConsumerWidget {
                 child: Text('Cancel'),
               ),
               ElevatedButton(
-                onPressed: () {
-                  ref.read(labelProvider.notifier).deleteLabel(label);
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  EasyLoading.show(status: 'Loading...');
+                  try {
+                    final result = await ref
+                        .read(labelProvider.notifier)
+                        .deleteLabel(label);
+                    if (result) {
+                      EasyLoading.showSuccess('Label deleted succesfully');
+                    } else {
+                      EasyLoading.showError('Failed to delete label');
+                    }
+                    Navigator.of(context).pop();
+                  } catch (error) {
+                    EasyLoading.showError('Failed to delete label');
+                  }
                 },
                 child: Text('Delete'),
               ),

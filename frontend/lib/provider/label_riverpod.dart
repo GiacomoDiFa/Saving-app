@@ -25,24 +25,27 @@ class LabelState extends StateNotifier<List<Label>> {
     }
   }
 
-  Future<void> addLabel(String label, String fieldValue) async {
+  Future<bool> addLabel(String label, String fieldValue) async {
     isLoading = true;
     try {
       final _apiService = ref.read(apiServiceProvider);
       final success = await _apiService.addLabel(label, fieldValue);
       if (success) {
         await fetchLabels();
+        return true;
       } else {
         isLoading = false;
+        return false;
         // Gestione dell'errore
       }
     } catch (e) {
       isLoading = false;
+      return false;
       // Gestione dell'errore
     }
   }
 
-  Future<void> updateLabel(
+  Future<bool> updateLabel(
       Label label, String newLabel, String newFieldValue) async {
     isLoading = true;
     try {
@@ -51,29 +54,35 @@ class LabelState extends StateNotifier<List<Label>> {
           await _apiService.updateLabel(label.label, newLabel, newFieldValue);
       if (success) {
         await fetchLabels();
+        return true;
       } else {
         isLoading = false;
+        return false;
         // Gestione dell'errore
       }
     } catch (e) {
       isLoading = false;
+      return false;
       // Gestione dell'errore
     }
   }
 
-  Future<void> deleteLabel(String label) async {
+  Future<bool> deleteLabel(String label) async {
     isLoading = true;
     try {
       final _apiService = ref.read(apiServiceProvider);
       final success = await _apiService.deleteLabel(label);
       if (success) {
         await fetchLabels();
+        return true;
       } else {
         isLoading = false;
+        return false;
         // Gestione dell'errore
       }
     } catch (e) {
       isLoading = false;
+      return false;
       // Gestione dell'errore
     }
   }
