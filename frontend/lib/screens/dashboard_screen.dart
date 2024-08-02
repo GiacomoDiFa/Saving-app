@@ -12,27 +12,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  DateTime selectedDate = DateTime.now();
   int selectedIndex = 0; // Indice per il PageView
-
-  void _updateSelectedDate(DateTime newDate) {
-    setState(() {
-      selectedDate = newDate;
-      ref.read(selectedMonthProvider.notifier).state = newDate.month;
-      ref.read(selectedYearProvider.notifier).state = newDate.year;
-      ref
-          .read(statisticalProvider.notifier)
-          .fetchStatistical(newDate.month, newDate.year);
-    });
-  }
-
-  void _incrementMonth() {
-    _updateSelectedDate(DateTime(selectedDate.year, selectedDate.month + 1));
-  }
-
-  void _decrementMonth() {
-    _updateSelectedDate(DateTime(selectedDate.year, selectedDate.month - 1));
-  }
 
   Future<void> _selectMonthYear(BuildContext context) async {
     showModalBottomSheet(
@@ -41,7 +21,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        int tempYear = selectedDate.year;
+        int tempYear = ref.read(selectedYearProvider);
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             void _incrementYear() {
@@ -93,7 +73,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       itemBuilder: (BuildContext context, int index) {
                         return GestureDetector(
                           onTap: () {
-                            _updateSelectedDate(DateTime(tempYear, index + 1));
+                            ref.read(selectedMonthProvider.notifier).state =
+                                index + 1;
+                            ref.read(selectedYearProvider.notifier).state =
+                                tempYear;
+
                             Navigator.pop(context);
                           },
                           child: Container(
@@ -101,16 +85,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             margin: EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
-                              color: selectedDate.year == tempYear &&
-                                      selectedDate.month == index + 1
+                              color: ref.read(selectedMonthProvider) ==
+                                          index + 1 &&
+                                      ref.read(selectedYearProvider) == tempYear
                                   ? Colors.blueAccent
                                   : Colors.grey[300],
                             ),
                             child: Text(
                               DateFormat('MMM').format(DateTime(0, index + 1)),
                               style: TextStyle(
-                                color: selectedDate.year == tempYear &&
-                                        selectedDate.month == index + 1
+                                color: ref.read(selectedMonthProvider) ==
+                                            index + 1 &&
+                                        ref.read(selectedYearProvider) ==
+                                            tempYear
                                     ? Colors.white
                                     : Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -130,6 +117,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  void _previousMonth() {
+    if (ref.read(selectedMonthProvider) == 1) {
+      ref.read(selectedMonthProvider.notifier).state = 12;
+      ref.read(selectedYearProvider.notifier).state -= 1;
+    } else {
+      ref.read(selectedMonthProvider.notifier).state -= 1;
+    }
+  }
+
+  void _nextMonth() {
+    if (ref.read(selectedMonthProvider) == 12) {
+      ref.read(selectedMonthProvider.notifier).state = 1;
+      ref.read(selectedYearProvider.notifier).state += 1;
+    } else {
+      ref.read(selectedMonthProvider.notifier).state += 1;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,26 +142,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: Text('Dashboard'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: _decrementMonth,
-          ),
-          InkWell(
-            onTap: () => _selectMonthYear(context),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  DateFormat('MMM yyyy').format(selectedDate),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.arrow_forward),
-            onPressed: _incrementMonth,
-          ),
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
@@ -175,6 +160,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: _previousMonth,
+                  icon: Icon(Icons.arrow_left),
+                ),
+                GestureDetector(
+                  onTap: () => _selectMonthYear(context),
+                  child: Text(
+                    '${ref.watch(selectedMonthProvider)}/${ref.watch(selectedYearProvider)}',
+                    style:
+                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _nextMonth,
+                  icon: Icon(Icons.arrow_right),
+                ),
+              ],
+            ),
             Expanded(
               child: PageView(
                 onPageChanged: (int index) {
