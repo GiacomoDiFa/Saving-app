@@ -163,6 +163,14 @@ class LabelScreen extends ConsumerWidget {
       );
     }
 
+    // Sort labels to have "Other" first
+    final sortedLabels = [...labels];
+    sortedLabels.sort((a, b) {
+      if (a.label == "Other") return -1;
+      if (b.label == "Other") return 1;
+      return 0;
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Labels'),
@@ -181,30 +189,33 @@ class LabelScreen extends ConsumerWidget {
           : isLoading
               ? Center(child: CircularProgressIndicator())
               : ListView.builder(
-                  itemCount: labels.length,
+                  itemCount: sortedLabels.length,
                   itemBuilder: (context, index) {
+                    final label = sortedLabels[index];
                     return Card(
                       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: ListTile(
-                        title: Text(labels[index].label),
-                        subtitle: Text(labels[index].field),
-                        trailing: Wrap(
-                          children: <Widget>[
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                _showAddOrEditLabelDialog(label: labels[index]);
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                _showDeleteConfirmationDialog(
-                                    labels[index].label);
-                              },
-                            ),
-                          ],
-                        ),
+                        title: Text(label.label),
+                        subtitle: Text(label.field),
+                        trailing: label.label == "Other"
+                            ? null
+                            : Wrap(
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      _showAddOrEditLabelDialog(label: label);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () {
+                                      _showDeleteConfirmationDialog(
+                                          label.label);
+                                    },
+                                  ),
+                                ],
+                              ),
                       ),
                     );
                   },

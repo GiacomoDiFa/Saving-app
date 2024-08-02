@@ -17,6 +17,7 @@ const {
 
 const otpGenerator = require('otp-generator')
 const authenticateJWT = require('../middleware/tokenmiddleware')
+const Label = require('../model/Label')
 
 function generateToken(user) {
   const payload = {
@@ -75,6 +76,14 @@ router.post('/signup', checkUserExists, hashPassword, async (req, res) => {
   })
 
   await user.save()
+
+  const label = new Label({
+    userId: user._id,
+    label: 'Other',
+    field: 'other',
+  })
+
+  await label.save()
 
   const token = generateToken(user)
 

@@ -14,7 +14,7 @@ const labelSchema = new Schema(
     },
     field: {
       type: String,
-      enum: ['fundamentals', 'fun', 'future you', 'nan'],
+      enum: ['fundamentals', 'fun', 'future you', 'other'],
       required: true,
     },
   },

@@ -77,12 +77,8 @@ router.post('/delete', authenticateToken, async (req, res) => {
       labelId: labelToDelete._id,
     })
     if (transactions.length > 0) {
-      let nanLabel = await Label.findOne({ userId: userId, label: 'nan' })
+      let nanLabel = await Label.findOne({ userId: userId, label: 'Other' })
 
-      if (!nanLabel) {
-        nanLabel = new Label({ userId: userId, label: 'nan', field: 'nan' })
-        await nanLabel.save()
-      }
       await Transaction.updateMany(
         { userId: userId, labelId: labelToDelete._id },
         { $set: { labelId: nanLabel._id } }
