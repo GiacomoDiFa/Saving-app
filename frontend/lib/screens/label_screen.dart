@@ -83,6 +83,15 @@ class LabelScreen extends ConsumerWidget {
                         final result = await ref
                             .read(labelProvider.notifier)
                             .addLabel(labelName, fieldValue);
+                        await ref
+                            .watch(statisticalProvider.notifier)
+                            .fetchStatistical(ref.watch(selectedMonthProvider),
+                                ref.watch(selectedYearProvider));
+                        await ref
+                            .watch(labelexpencesProvider.notifier)
+                            .fetchLabelExpences(
+                                ref.watch(selectedMonthProvider),
+                                ref.watch(selectedYearProvider));
                         if (result) {
                           EasyLoading.showSuccess('Label added successfully');
                         } else {
@@ -97,6 +106,15 @@ class LabelScreen extends ConsumerWidget {
                         final result = await ref
                             .read(labelProvider.notifier)
                             .updateLabel(label!, labelName, fieldValue);
+                        await ref
+                            .watch(statisticalProvider.notifier)
+                            .fetchStatistical(ref.watch(selectedMonthProvider),
+                                ref.watch(selectedYearProvider));
+                        await ref
+                            .watch(labelexpencesProvider.notifier)
+                            .fetchLabelExpences(
+                                ref.watch(selectedMonthProvider),
+                                ref.watch(selectedYearProvider));
                         if (result) {
                           EasyLoading.showSuccess(
                               'Label modified successfully');
@@ -145,6 +163,14 @@ class LabelScreen extends ConsumerWidget {
                     final result = await ref
                         .read(labelProvider.notifier)
                         .deleteLabel(label);
+                    await ref
+                        .watch(statisticalProvider.notifier)
+                        .fetchStatistical(ref.watch(selectedMonthProvider),
+                            ref.watch(selectedYearProvider));
+                    await ref
+                        .watch(labelexpencesProvider.notifier)
+                        .fetchLabelExpences(ref.watch(selectedMonthProvider),
+                            ref.watch(selectedYearProvider));
                     if (result) {
                       EasyLoading.showSuccess('Label deleted succesfully');
                     } else {
