@@ -21,7 +21,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String _transactionType = 'expense';
   num _transactionAmount = 0;
   String _transactionDescription = '';
-  final ApiService _apiService = ApiService();
 
   @override
   void initState() {

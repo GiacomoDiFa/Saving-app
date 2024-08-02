@@ -20,123 +20,119 @@ class LabelScreen extends ConsumerWidget {
     Future<void> _showAddOrEditLabelDialog({Label? label}) async {
       String labelName = label?.label ?? '';
       String fieldValue = label?.field ?? 'fundamentals';
+      TextEditingController labelController =
+          TextEditingController(text: labelName);
 
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title:
-                Center(child: Text(label == null ? 'Add Label' : 'Edit Label')),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Label',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                  ),
-                  onChanged: (value) {
-                    labelName = value;
-                  },
-                  controller: TextEditingController(text: labelName),
-                ),
-                SizedBox(height: 20),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Field Value',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: fieldValue,
-                      onChanged: (String? newValue) {
-                        fieldValue = newValue!;
-                      },
-                      items: <String>['fundamentals', 'fun', 'future you']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (labelName.isNotEmpty && fieldValue.isNotEmpty) {
-                    if (label == null) {
-                      EasyLoading.show(status: 'Loading...');
-                      try {
-                        final result = await ref
-                            .read(labelProvider.notifier)
-                            .addLabel(labelName, fieldValue);
-                        await ref
-                            .watch(statisticalProvider.notifier)
-                            .fetchStatistical(ref.watch(selectedMonthProvider),
-                                ref.watch(selectedYearProvider));
-                        await ref
-                            .watch(labelexpencesProvider.notifier)
-                            .fetchLabelExpences(
-                                ref.watch(selectedMonthProvider),
-                                ref.watch(selectedYearProvider));
-                        if (result) {
-                          EasyLoading.showSuccess('Label added successfully');
-                        } else {
-                          EasyLoading.showError('Failed to add label');
-                        }
-                      } catch (error) {
-                        EasyLoading.showError('Failed to add label');
-                      }
-                    } else {
-                      EasyLoading.show(status: 'Loading...');
-                      try {
-                        final result = await ref
-                            .read(labelProvider.notifier)
-                            .updateLabel(label!, labelName, fieldValue);
-                        await ref
-                            .watch(statisticalProvider.notifier)
-                            .fetchStatistical(ref.watch(selectedMonthProvider),
-                                ref.watch(selectedYearProvider));
-                        await ref
-                            .watch(labelexpencesProvider.notifier)
-                            .fetchLabelExpences(
-                                ref.watch(selectedMonthProvider),
-                                ref.watch(selectedYearProvider));
-                        if (result) {
-                          EasyLoading.showSuccess(
-                              'Label modified successfully');
-                        } else {
-                          EasyLoading.showError('Failed to modify label');
-                        }
-                      } catch (error) {
-                        EasyLoading.showError('Failed to modify label');
-                      }
-                    }
-                    Navigator.of(context).pop();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Please enter label and field value'),
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Center(
+                    child: Text(label == null ? 'Add Label' : 'Edit Label')),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Label',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 10),
                       ),
-                    );
-                  }
-                },
-                child: Text(label == null ? 'Add' : 'Update'),
-              ),
-            ],
+                      controller: labelController,
+                      onChanged: (value) {
+                        labelName = value;
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Field Value',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: fieldValue,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              fieldValue = newValue!;
+                            });
+                          },
+                          items: <String>['fundamentals', 'fun', 'future you']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (labelName.isNotEmpty && fieldValue.isNotEmpty) {
+                        EasyLoading.show(status: 'Loading...');
+                        try {
+                          bool result;
+                          if (label == null) {
+                            result = await ref
+                                .read(labelProvider.notifier)
+                                .addLabel(labelName, fieldValue);
+                          } else {
+                            result = await ref
+                                .read(labelProvider.notifier)
+                                .updateLabel(label!, labelName, fieldValue);
+                          }
+                          await ref
+                              .watch(statisticalProvider.notifier)
+                              .fetchStatistical(
+                                  ref.watch(selectedMonthProvider),
+                                  ref.watch(selectedYearProvider));
+                          await ref
+                              .watch(labelexpencesProvider.notifier)
+                              .fetchLabelExpences(
+                                  ref.watch(selectedMonthProvider),
+                                  ref.watch(selectedYearProvider));
+                          if (result) {
+                            EasyLoading.showSuccess(label == null
+                                ? 'Label added successfully'
+                                : 'Label modified successfully');
+                          } else {
+                            EasyLoading.showError(label == null
+                                ? 'Failed to add label'
+                                : 'Failed to modify label');
+                          }
+                        } catch (error) {
+                          EasyLoading.showError(label == null
+                              ? 'Failed to add label'
+                              : 'Failed to modify label');
+                        }
+                        Navigator.of(context).pop();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please enter label and field value'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text(label == null ? 'Add' : 'Update'),
+                  ),
+                ],
+              );
+            },
           );
         },
       );
@@ -172,7 +168,7 @@ class LabelScreen extends ConsumerWidget {
                         .fetchLabelExpences(ref.watch(selectedMonthProvider),
                             ref.watch(selectedYearProvider));
                     if (result) {
-                      EasyLoading.showSuccess('Label deleted succesfully');
+                      EasyLoading.showSuccess('Label deleted successfully');
                     } else {
                       EasyLoading.showError('Failed to delete label');
                     }
