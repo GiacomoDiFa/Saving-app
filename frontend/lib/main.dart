@@ -16,10 +16,10 @@ void main() {
 void configLoading() {
   EasyLoading.instance
     ..indicatorType = EasyLoadingIndicatorType.circle
-    ..loadingStyle = EasyLoadingStyle.dark
+    ..loadingStyle = EasyLoadingStyle.light
     ..indicatorSize = 45.0
     ..radius = 10.0
-    ..maskType = EasyLoadingMaskType.black
+    ..maskType = EasyLoadingMaskType.clear
     ..userInteractions = false
     ..dismissOnTap = false;
 }
