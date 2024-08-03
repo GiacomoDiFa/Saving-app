@@ -293,6 +293,36 @@ class ApiService {
     }
   }
 
+  Future<bool> modifyTransaction(
+      String id,
+      String labelId,
+      String transactionType,
+      String amount,
+      String description,
+      String date) async {
+    final uri = Uri.parse('$apiBaseUrl/transaction/modify');
+    final response = await http.post(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Cookie': 'token=$_authToken',
+      },
+      body: jsonEncode(<String, String>{
+        'transactionId': id,
+        'label': labelId,
+        'transactionType': transactionType,
+        'amount': amount,
+        'description': description,
+        'date': date
+      }),
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<num> getFundamentalMonthly(String month) async {
     final uri = Uri.parse('$apiBaseUrl/summary/fundamentals');
     final response = await http.post(

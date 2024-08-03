@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/transaction.dart';
 import 'package:frontend/provider/provider.dart';
+import 'package:frontend/services/api_service.dart';
 
 // StateNotifier per la gestione delle transazioni e delle etichette
 class TransactionState extends StateNotifier<List<Transaction>> {
@@ -63,6 +64,32 @@ class TransactionState extends StateNotifier<List<Transaction>> {
       final apiService = ref.read(apiServiceProvider);
       final success = await apiService.addTransaction(
           label, transactionType, amount, description);
+      final labelSelected =
+          ref.watch(selectedLabelProvider.notifier).state = null;
+      if (success) {
+        await fetchTransactions(labelSelected, month, year);
+      } else {
+        isLoading = false;
+      }
+    } catch (error) {
+      isLoading = false;
+    }
+  }
+
+  Future<void> modifyTransaction(
+      String id,
+      String labelId,
+      String transactionType,
+      String amount,
+      String description,
+      String date,
+      int? month,
+      int? year) async {
+    try {
+      isLoading = true;
+      final apiService = ref.read(apiServiceProvider);
+      final success = await apiService.modifyTransaction(
+          id, labelId, transactionType, amount, description, date);
       final labelSelected =
           ref.watch(selectedLabelProvider.notifier).state = null;
       if (success) {

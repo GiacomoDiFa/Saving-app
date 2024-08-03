@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/model/label.dart';
 import 'package:frontend/provider/provider.dart';
 import 'package:frontend/screens/home_screen.dart';
-import 'package:frontend/services/api_service.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final List<Label> labels;

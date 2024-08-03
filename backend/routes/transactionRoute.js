@@ -111,7 +111,40 @@ router.post('/add', authenticateToken, async (req, res) => {
   }
 })
 
-router.post('/modify/:id')
+router.post('/modify', authenticateToken, async (req, res) => {
+  try {
+    const { transactionId, label, transactionType, amount, description, date } =
+      req.body
+    const userId = req.userId
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    const result = await Transaction.replaceOne(
+      { _id: transactionId },
+      {
+        _id: transactionId,
+        userId: userId,
+        labelId: label,
+        transactionType: transactionType,
+        amount: amount,
+        description: description,
+        date: date,
+      }
+    )
+    if (result) {
+      return res
+        .status(200)
+        .json({ message: 'Transaction modified succesfully' })
+    } else {
+      return res
+        .status(404)
+        .json({ message: 'Impossible to modify the transaction' })
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
 
 router.post('/delete', authenticateToken, async (req, res) => {
   try {
