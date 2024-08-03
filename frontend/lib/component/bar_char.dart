@@ -59,20 +59,7 @@ class BarChartSample extends ConsumerWidget {
                       show: true,
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            return SideTitleWidget(
-                              axisSide: meta.axisSide,
-                              space: 16,
-                              child: Text(
-                                labelExpenses[value.toInt()].label,
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14),
-                              ),
-                            );
-                          },
+                          showTitles: false, // Nascondi i titoli in basso
                         ),
                       ),
                       leftTitles: AxisTitles(
